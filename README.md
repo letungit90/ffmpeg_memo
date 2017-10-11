@@ -31,23 +31,39 @@ ffmpeg -y \
 [v0][v1][v2] concat=n=3:v=1:a=0, format=yuv420p[v]" -map '[v]' -c:v libx264 -pix_fmt yuvj420p -q:v 1 out.mp4
 ```
 
-## Zoomout and fade
+## Zoomout and Fade
 ```
 ffmpeg \
 -t 5 -i 1.jpg \
 -t 5 -i 2.jpg \
 -t 5 -i 3.jpg \
 -t 5 -i 4.jpg  -filter_complex " \
-[0:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=out:st=4:d=1[v0]; \
-[1:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v1]; \
-[2:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v2]; \
-[3:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=1[v3]; \
-[v0][v1][v2][v3]concat=n=4:v=1:a=0,format=yuv420p[v]" -map "[v]" -s "1080x1080" -t 40 out_fade.mp4
+[0:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=out:st=4:d=1[v0]; \
+[1:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v1]; \
+[2:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v2]; \
+[3:v]zoompan=z='min(max(zoom,pzoom)+0.015,2)':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=1[v3]; \
+[v0][v1][v2][v3]concat=n=4:v=1:a=0,format=yuv420p[v]" -map "[v]" -t 40 out_fade.mp4
+```
+
+## Zoomin and Fade
+```
+ffmpeg \
+-t 5 -i 1.jpg \
+-t 5 -i 2.jpg \
+-t 5 -i 3.jpg \
+-t 5 -i 4.jpg  -filter_complex " \
+[0:v]zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.015))':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=out:st=4:d=1[v0]; \
+[1:v]zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.015))':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v1]; \
+[2:v]zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.015))':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=2[v2]; \
+[3:v]zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.015))':s=1080x1080:d=50:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',fade=t=in:st=0:d=1,fade=t=out:st=4:d=1[v3]; \
+[v0][v1][v2][v3]concat=n=4:v=1:a=0,format=yuv420p[v]" -map "[v]" -t 40 out_fade.mp4
 ```
 
 ## Zoom a image
 ```
-ffmpeg -framerate 25 -loop 1 -i 1.jpg -filter_complex "[0:v]zoompan=z='min(max(zoom,pzoom)+0.015,1.5)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1080,trim=duration=5[v]" -map "[v]" -y zoom.mp4
+ffmpeg -framerate 30 -loop 1 -i 1.jpg -filter_complex "[0:v]zoompan=z='min(max(zoom,pzoom)+0.015,1.5)':d=1.5:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1080,trim=duration=5[v]" -map "[v]" -y zoom.mp4
+
+ffmpeg -framerate 30 -loop 1 -i 1.jpg -filter_complex "[0:v]zoompan=z='min(zoom+0.015,1.5)':d=1.5:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1080,fps=fps=30,trim=duration=5[v]" -map "[v]" -y -pix_fmt yuv420p zoom.mp4
 ```
 
 ## Insert text in video
@@ -81,4 +97,11 @@ ffmpeg -loop 1 -i 1.jpg -c:v libx264 -t 15 -pix_fmt yuv420p -vf scale=1080:1080 
 ## Dynamic video view
 ```
 ffmpeg -i static_img.mp4 -filter:v "crop=in_w/2:in_h/2:(in_w-out_w)/2+((in_w-out_w)/2)*sin(t*1):(in_h-out_h)/2 +((in_h-out_h)/2)*sin(t*2)" dynamic_view.mp4
+
+ffmpeg -i merge_img.mp4 -filter:v "crop=in_w/4:in_h:t*100:0" dynamic_view_merge_img.mp4
+```
+
+## Merge images
+```
+ffmpeg -pattern_type glob -i "*.jpg" -filter_complex "tile=4x1:margin=10:padding=4" merged_img.jpg
 ```
